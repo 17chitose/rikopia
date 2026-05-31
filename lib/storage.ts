@@ -71,6 +71,9 @@ export async function getPosts(): Promise<Post[]> {
 // 🔌【保存】新しい投稿をSupabaseのデータベースに保存する関数
 export async function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">): Promise<void> {
   try {
+    // 👤 現在ログインしているユーザーの情報を取得します
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { error } = await supabase
       .from("posts")
       .insert([
@@ -81,6 +84,7 @@ export async function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">
           stars: newPost.stars,
           hardness: newPost.hardness,
           likes: 0, // 新しい投稿はいいね！ 0個からスタート
+          user_id: user ? user.id : null, // 🔑 ログインしていればそのIDを、していなければnull（空っぽ）を入れます
         }
       ]);
 
