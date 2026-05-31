@@ -2,7 +2,7 @@
 "use client"; // localStorageやuseStateを使うため、クライアントサイド（ブラウザ）で動かします
 
 import React, { useState, useEffect } from "react";
-import { getPosts, deletePost, type Post } from "@/lib/storage"; // メモ帳から取得・削除する命令を読み込みます
+import { getPosts, deletePost, likePost, type Post } from "@/lib/storage"; // getPosts, deletePostに加えて、likePost（いいねを増やす命令）を追加で読み込みます
 
 export default function Home() {
   // 投稿データを覚えておくための state です
@@ -16,17 +16,22 @@ export default function Home() {
 
   // 「削除」ボタンが押された時の処理です
   const handleDelete = (id: string) => {
-    // 間違えて消してしまわないように、確認メッセージを出します
     if (confirm("このレビューを削除してもよろしいですか？")) {
-      // メモ帳から削除して、新しくなった投稿リストを画面に再読み込みさせます
       const updated = deletePost(id);
       setPosts(updated);
     }
   };
 
+  // ❤️ 「いいね！」ボタンが押された時の処理です
+  const handleLike = (id: string) => {
+    // メモ帳のいいね！数を1つ増やし、最新の投稿リストを画面に再読み込みさせます
+    const updated = likePost(id);
+    setPosts(updated);
+  };
+
   return (
     <main>
-      {/* アプリのヘッダー部分（共通メニューができたので、すっきりさせました） */}
+      {/* アプリのヘッダー部分 */}
       <div className="header-container">
         <h1 className="title">🍬 みんなのタイムライン</h1>
         <p className="subtitle">お気に入りのグミをみんなでシェアしよう！</p>
@@ -36,7 +41,7 @@ export default function Home() {
       <div className="timeline">
         {posts.map((post) => (
           <div key={post.id} className="card">
-            {/* 🗑️ 削除ボタンを右上に配置しました */}
+            {/* 🗑️ 削除ボタン */}
             <button
               onClick={() => handleDelete(post.id)}
               className="delete-btn"
@@ -59,6 +64,15 @@ export default function Home() {
             <div className="rating-bar">
               <span className="stars">★ {"★".repeat(post.stars - 1)}</span>
               <span className="hardness">食感: {post.hardness}</span>
+
+              {/* ❤️ 「いいね！」ボタンを追加しました */}
+              <button
+                onClick={() => handleLike(post.id)}
+                className="like-btn"
+                title="この投稿にいいね！をする"
+              >
+                ❤️ {post.likes || 0}
+              </button>
             </div>
           </div>
         ))}

@@ -16,7 +16,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-color);
   display: flex;
-  flex-direction: column; /* 共通ヘッダーを上にするため縦並びにします */
+  flex-direction: column;
   align-items: center;
 }
 
@@ -106,7 +106,7 @@ main {
   border-radius: 12px;
   padding: 20px;
   border: 1px solid var(--border-color);
-  position: relative; /* 削除ボタンの配置のため */
+  position: relative;
 }
 
 /* 投稿ヘッダー */
@@ -115,7 +115,7 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  padding-right: 48px; /* 削除ボタンと被らないように余白を作ります */
+  padding-right: 48px;
 }
 
 .author {
@@ -164,9 +164,10 @@ main {
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
+  margin-right: auto; /* ❤️ 追加：いいねボタンを右端に寄せるために、かたさバッジの右側に余白を作ります */
 }
 
-/* 🗑️ 削除ボタンのスタイル */
+/* 🗑️ 削除ボタン */
 .delete-btn {
   position: absolute;
   top: 16px;
@@ -183,6 +184,29 @@ main {
 
 .delete-btn:hover {
   background-color: #fee2e2;
+}
+
+/* ❤️ いいね！ボタン */
+.like-btn {
+  background-color: #fff1f2;
+  color: #f43f5e;
+  border: 1px solid #fecdd3;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.like-btn:hover {
+  background-color: #f43f5e;
+  color: #ffffff;
+  border-color: #f43f5e;
+  transform: scale(1.05); /* マウスをのせた時に少しぷっくり大きくします */
 }
 
 /* ━━━━━━━ 入力フォーム ━━━━━━━ */

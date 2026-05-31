@@ -1,6 +1,6 @@
 // lib/storage.ts
 
-// レビュー投稿のデータの「かたち」を定義します
+// レビュー投稿のデータの「かたち」を定義します（いいね数を追加しました）
 export type Post = {
   id: string;
   author: string;
@@ -9,30 +9,32 @@ export type Post = {
   stars: number;
   hardness: string; // かたさ
   createdAt: string; // 投稿した時間
+  likes: number; // ❤️ 追加：いいね！の数
 };
 
-// プロフィールのデータの「かたち」を定義します（アバターを追加しました）
+// プロフィールのデータの「かたち」を定義します
 export type Profile = {
   name: string;
   favoriteGummy: string;
   bio: string;
-  avatar: string; // 👤 追加：絵文字アバター
+  avatar: string; // 👤 絵文字アバター
 };
 
 // メモ帳の引き出しに貼るラベルの名前です
 const STORAGE_KEY = "gummy_reviews_posts";
 const PROFILE_KEY = "gummy_profile";
 
-// 最初の1回目の時に表示する、サンプル用の投稿データです
+// 最初の1回目の時に表示する、サンプル用の投稿データです（最初からいいね！が入っているようにします）
 const INITIAL_POSTS: Post[] = [
   {
     id: "1",
     author: "グミすき人間",
     gummyName: "ぷにぷにぶどうグミ",
-    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄 of 形をしていて可愛い💜",
+    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄の形をしていて可愛い💜",
     stars: 5,
     hardness: "やわらかめ",
     createdAt: "2026/05/31 12:00",
+    likes: 12, // ❤️ 初期いいね！数
   },
   {
     id: "2",
@@ -42,15 +44,16 @@ const INITIAL_POSTS: Post[] = [
     stars: 4,
     hardness: "超ハード",
     createdAt: "2026/05/31 11:30",
+    likes: 5, // ❤️ 初期いいね！数
   },
 ];
 
-// プロフィールの初期データ（アバターに恐竜を設定しました）
+// プロフィールの初期データ
 const DEFAULT_PROFILE: Profile = {
   name: "グミ初心者",
   favoriteGummy: "フィットチーネグミ（仮）",
   bio: "グミが大好きです！これからいろんなレビューを投稿します！",
-  avatar: "🦖", // 👤 追加：初期アバターは恐竜
+  avatar: "🦖",
 };
 
 /* ━━━━━━━ 投稿（ポスト）の処理 ━━━━━━━ */
@@ -68,7 +71,7 @@ export function getPosts(): Post[] {
 }
 
 // 【保存】新しい投稿をメモ帳に新しく書き加える関数
-export function savePost(newPost: Omit<Post, "id" | "createdAt">): Post {
+export function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">): Post {
   const posts = getPosts();
   
   const now = new Date();
@@ -78,6 +81,7 @@ export function savePost(newPost: Omit<Post, "id" | "createdAt">): Post {
     ...newPost,
     id: Date.now().toString(),
     createdAt: formattedDate,
+    likes: 0, // ❤️ 追加：新しい投稿は、いいね！ 0個からスタートします
   };
 
   const updatedPosts = [post, ...posts];
@@ -96,6 +100,24 @@ export function deletePost(id: string): Post[] {
   return updatedPosts;
 }
 
+// ❤️ 【いいね！追加】指定された投稿のいいね！数を1つ増やす関数
+export function likePost(id: string): Post[] {
+  if (typeof window === "undefined") return [];
+  
+  const posts = getPosts();
+  // 該当するIDの投稿だけ、いいねの数を+1するループ（map）処理です
+  const updatedPosts = posts.map((post) => {
+    if (post.id === id) {
+      const currentLikes = post.likes || 0;
+      return { ...post, likes: currentLikes + 1 };
+    }
+    return post;
+  });
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
+  return updatedPosts;
+}
+
 /* ━━━━━━━ プロフィールの処理 ━━━━━━━ */
 
 // 【プロフィール取得】メモ帳からプロフィールを読み込む関数
@@ -109,7 +131,6 @@ export function getProfile(): Profile {
   }
   
   const profile = JSON.parse(data);
-  // もし昔のデータにアバターが無い場合は、デフォルトの恐竜を補います
   if (!profile.avatar) {
     profile.avatar = "🦖";
   }
