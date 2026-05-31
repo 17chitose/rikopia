@@ -1,6 +1,6 @@
 /* app/globals.css */
 
-/* 🆕 追加：すべての要素で、余白や枠線が枠の外側にはみ出さないように正しく計算させます */
+/* すべての要素で、余白や枠線が枠の外側にはみ出さないように正しく計算させます */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -64,21 +64,42 @@ main {
 .header-nav {
   display: flex;
   gap: 4px;
+  flex-wrap: nowrap; /* 🆕 追加：横並びを絶対に折り返さず、1行に維持します */
+  align-items: center;
 }
 
 .nav-item {
-  font-size: 0.75rem;
+  font-size: 0.72rem; /* 👤 メニューが増えるため文字サイズを少しコンパクトに調整 */
   font-weight: 600;
   color: var(--text-light);
   text-decoration: none;
   padding: 6px 8px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  white-space: nowrap; /* 🆕 追加：メニューの文字が途中で絶対に改行されないようにします */
 }
 
 .nav-item:hover {
   color: var(--primary-color);
   background-color: #f3f4f6;
+}
+
+/* 🆕 ログアウト用の赤いボタンのデザインを追加しました */
+.logout-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #ef4444; /* 赤色 */
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap; /* 絶対に途中で改行させません */
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #fee2e2;
 }
 
 /* ━━━━━━━ 各ページのヘッダー（タイトル） ━━━━━━━ */
