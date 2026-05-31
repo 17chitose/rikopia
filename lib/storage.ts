@@ -11,11 +11,12 @@ export type Post = {
   createdAt: string; // 投稿した時間
 };
 
-// プロフィールのデータの「かたち」を定義します
+// プロフィールのデータの「かたち」を定義します（アバターを追加しました）
 export type Profile = {
   name: string;
   favoriteGummy: string;
   bio: string;
+  avatar: string; // 👤 追加：絵文字アバター
 };
 
 // メモ帳の引き出しに貼るラベルの名前です
@@ -28,7 +29,7 @@ const INITIAL_POSTS: Post[] = [
     id: "1",
     author: "グミすき人間",
     gummyName: "ぷにぷにぶどうグミ",
-    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄の形をしていて可愛い💜",
+    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄 of 形をしていて可愛い💜",
     stars: 5,
     hardness: "やわらかめ",
     createdAt: "2026/05/31 12:00",
@@ -44,11 +45,12 @@ const INITIAL_POSTS: Post[] = [
   },
 ];
 
-// プロフィールの初期データ（まだ登録していない時の名前）
+// プロフィールの初期データ（アバターに恐竜を設定しました）
 const DEFAULT_PROFILE: Profile = {
   name: "グミ初心者",
   favoriteGummy: "フィットチーネグミ（仮）",
   bio: "グミが大好きです！これからいろんなレビューを投稿します！",
+  avatar: "🦖", // 👤 追加：初期アバターは恐竜
 };
 
 /* ━━━━━━━ 投稿（ポスト）の処理 ━━━━━━━ */
@@ -88,7 +90,6 @@ export function deletePost(id: string): Post[] {
   if (typeof window === "undefined") return [];
   
   const posts = getPosts();
-  // 指定されたID「以外」の投稿だけを残す（＝指定されたIDを消す）フィルター処理です
   const updatedPosts = posts.filter((post) => post.id !== id);
   
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
@@ -106,7 +107,13 @@ export function getProfile(): Profile {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(DEFAULT_PROFILE));
     return DEFAULT_PROFILE;
   }
-  return JSON.parse(data);
+  
+  const profile = JSON.parse(data);
+  // もし昔のデータにアバターが無い場合は、デフォルトの恐竜を補います
+  if (!profile.avatar) {
+    profile.avatar = "🦖";
+  }
+  return profile;
 }
 
 // 【プロフィール保存】プロフィールを新しく上書き保存する関数

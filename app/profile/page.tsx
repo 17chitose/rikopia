@@ -2,7 +2,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getProfile, saveProfile, type Profile } from "@/lib/storage"; // メモ帳からプロフィールの読み書き命令をインポートします
+import { getProfile, saveProfile, type Profile } from "@/lib/storage"; // メモ帳から読み書きの命令を読み込みます
+
+// アバターとして選べる、可愛い絵文字の候補リストです！
+const AVAILABLE_AVATARS = [
+  "🦖", "🐻", "🐼", "🍓", "🍬", 
+  "🥤", "🌟", "🎨", "👾", "🍦", 
+  "🍭", "🍪", "🍩", "🍋"
+];
 
 export default function ProfilePage() {
   // 現在保存されているプロフィール情報
@@ -10,14 +17,16 @@ export default function ProfilePage() {
     name: "",
     favoriteGummy: "",
     bio: "",
+    avatar: "🦖",
   });
 
   // 編集フォームに入力中の値
   const [name, setName] = useState("");
   const [favoriteGummy, setFavoriteGummy] = useState("");
   const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState("🦖"); // 👤 追加：選択中の絵文字を覚えておくstate
 
-  // 「今、編集モードかどうか」を記憶する state です（最初は表示モード）
+  // 「今、編集モードかどうか」を記憶する state
   const [isEditing, setIsEditing] = useState(false);
 
   // 画面が表示された瞬間に、保存されているプロフィールデータを読み込んでセットします
@@ -27,6 +36,7 @@ export default function ProfilePage() {
     setName(savedProfile.name);
     setFavoriteGummy(savedProfile.favoriteGummy);
     setBio(savedProfile.bio);
+    setAvatar(savedProfile.avatar || "🦖");
   }, []);
 
   // 「保存する」ボタンが押された時の処理です
@@ -42,6 +52,7 @@ export default function ProfilePage() {
       name,
       favoriteGummy,
       bio,
+      avatar, // 👤 追加：選んだ絵文字アバター
     };
 
     // メモ帳（localStorage）に上書き保存します
@@ -62,7 +73,8 @@ export default function ProfilePage() {
       {!isEditing ? (
         <div>
           <div className="profile-card">
-            <span className="profile-avatar">🦖</span>
+            {/* 👤 変更：保存されている絵文字アバターを表示します */}
+            <span className="profile-avatar">{profile.avatar || "🦖"}</span>
             <h2 className="profile-name">{profile.name || "名前未設定"}</h2>
             <div className="profile-gummy">🍭 推しグミ: {profile.favoriteGummy || "未登録"}</div>
             <p className="profile-bio">{profile.bio || "自己紹介がまだありません。"}</p>
@@ -78,6 +90,38 @@ export default function ProfilePage() {
       ) : (
         /* 【編集モード】編集中のときは、入力用フォームを表示します */
         <form onSubmit={handleSubmit} className="form-card">
+          
+          {/* 👤 追加：アバターの絵文字を選択するUIボタン */}
+          <div className="form-group">
+            <label className="label">アイコン（絵文字）</label>
+            <div style={{ 
+              display: "flex", 
+              gap: "8px", 
+              flexWrap: "wrap", 
+              marginBottom: "8px" 
+            }}>
+              {AVAILABLE_AVATARS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setAvatar(emoji)}
+                  style={{
+                    background: avatar === emoji ? "#eff6ff" : "none",
+                    border: avatar === emoji ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderRadius: "10px",
+                    padding: "8px",
+                    cursor: "pointer",
+                    fontSize: "1.8rem",
+                    transition: "all 0.15s ease",
+                  }}
+                  title="この絵文字を選ぶ"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* ニックネーム入力 */}
           <div className="form-group">
             <label className="label" htmlFor="profile-name">ニックネーム</label>
