@@ -1,4 +1,12 @@
 /* app/globals.css */
+
+/* 🆕 追加：すべての要素で、余白や枠線が枠の外側にはみ出さないように正しく計算させます */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 :root {
   --background: #fafafa;
   --card-bg: #ffffff;
@@ -55,11 +63,11 @@ main {
 
 .header-nav {
   display: flex;
-  gap: 4px; /* 👤 メニューが増えるため少し隙間を詰めました */
+  gap: 4px;
 }
 
 .nav-item {
-  font-size: 0.75rem; /* 👤 少しだけ文字サイズを調整 */
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-light);
   text-decoration: none;
@@ -373,7 +381,7 @@ main {
   border: 1px solid #f3f4f6;
 }
 
-/* ━━━━━━━ 🆕 診断（Quiz）用のスタイルを追加しました ━━━━━━━ */
+/* ━━━━━━━ 診断（Quiz）用のスタイル ━━━━━━━ */
 .quiz-card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -430,7 +438,7 @@ main {
 
 /* 診断結果画面 */
 .result-card {
-  background-color: #f0fdf4; /* ほんのり優しいグリーン（お祝い色） */
+  background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 12px;
   padding: 28px 24px;
