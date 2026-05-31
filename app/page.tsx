@@ -7,6 +7,7 @@ import { getPosts, deletePost, likePost, getMyLikedPosts, type Post } from "@/li
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [myLikedPosts, setMyLikedPosts] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<"newest" | "likes">("newest"); // 🆕 追加：並び替えの基準（最新順 / 人気順）を覚えておくstate
 
   // 画面が表示された瞬間にデータを読み込みます
   useEffect(() => {
@@ -22,12 +23,22 @@ export default function Home() {
     }
   };
 
-  // ❤️ 「いいね！」ボタンが押された時の処理（追加と取り消しの両方に対応）
+  // ❤️ 「いいね！」ボタンが押された時の処理
   const handleLike = (id: string) => {
     const updated = likePost(id);
     setPosts(updated);
-    setMyLikedPosts(getMyLikedPosts()); // いいねリストを再取得して画面を更新します
+    setMyLikedPosts(getMyLikedPosts());
   };
+
+  // 🆕 追加：選択されている基準に従って、投稿データを瞬時に並び替えます
+  const sortedPosts = [...posts].sort((a, b) => {
+    if (sortBy === "likes") {
+      // 🔥 人気順：いいね！の数が多い順（降順）に並び替えます
+      return (b.likes || 0) - (a.likes || 0);
+    }
+    // 🆕 最新順：投稿ID（タイムスタンプ）が大きい順（降順）に並び替えます
+    return b.id.localeCompare(a.id);
+  });
 
   return (
     <main>
@@ -37,9 +48,25 @@ export default function Home() {
         <p className="subtitle">お気に入りのグミをみんなでシェアしよう！</p>
       </div>
 
-      {/* タイムライン（投稿一覧） */}
+      {/* 🆕 追加：並び替え用のスイッチボタンバー */}
+      <div className="sort-bar">
+        <button
+          onClick={() => setSortBy("newest")}
+          className={`sort-btn ${sortBy === "newest" ? "active" : ""}`}
+        >
+          🆕 最新順
+        </button>
+        <button
+          onClick={() => setSortBy("likes")}
+          className={`sort-btn ${sortBy === "likes" ? "active" : ""}`}
+        >
+          🔥 人気順
+        </button>
+      </div>
+
+      {/* タイムライン（並び替えた後の sortedPosts を表示します） */}
       <div className="timeline">
-        {posts.map((post) => {
+        {sortedPosts.map((post) => {
           // 自分がこの投稿にすでにいいね！しているかチェック
           const isLiked = myLikedPosts.includes(post.id);
 
@@ -69,7 +96,7 @@ export default function Home() {
                 <span className="stars">★ {"★".repeat(post.stars - 1)}</span>
                 <span className="hardness">食感: {post.hardness}</span>
 
-                {/* ❤️ いいね！ボタン（disabledを外し、クリックでもう一度押せるようにしました） */}
+                {/* ❤️ いいね！ボタン */}
                 <button
                   onClick={() => handleLike(post.id)}
                   className={`like-btn ${isLiked ? "liked" : ""}`}
@@ -83,7 +110,7 @@ export default function Home() {
         })}
 
         {/* もし投稿が1件も無くなった場合の表示 */}
-        {posts.length === 0 && (
+        {sortedPosts.length === 0 && (
           <p style={{ textAlign: "center", color: "var(--text-light)", marginTop: "40px" }}>
             まだレビューがありません。右上の「レビュー」から最初のレビューを投稿してみましょう！✍️
           </p>

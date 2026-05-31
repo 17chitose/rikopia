@@ -76,7 +76,7 @@ main {
 /* ━━━━━━━ 各ページのヘッダー（タイトル） ━━━━━━━ */
 .header-container {
   text-align: left;
-  margin-bottom: 32px;
+  margin-bottom: 24px; /* 👤 少し余白を詰めました（並び替えバーが入るため） */
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 20px;
 }
@@ -92,6 +92,37 @@ main {
 .subtitle {
   color: var(--text-light);
   font-size: 0.85rem;
+}
+
+/* ━━━━━━━ 🆕 並び替えバーのスタイルを追加しました ━━━━━━━ */
+.sort-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sort-btn {
+  background-color: #ffffff;
+  color: var(--text-light);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sort-btn:hover {
+  background-color: #f3f4f6;
+  color: var(--primary-color);
+}
+
+/* 現在選択されている並び替えボタンのスタイル */
+.sort-btn.active {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
 }
 
 /* ━━━━━━━ タイムライン ━━━━━━━ */
@@ -206,7 +237,7 @@ main {
   background-color: #fff1f2;
   color: #f43f5e;
   border-color: #fecdd3;
-  transform: scale(1.05); /* ぷっくり大きくします */
+  transform: scale(1.05);
 }
 
 /* ❤️ いいね済み状態（すでに押してあるとき）の可愛いスタイル */
@@ -220,7 +251,7 @@ main {
   background-color: #ffe4e6;
   color: #e11d48;
   border-color: #f43f5e;
-  transform: scale(0.95); /* 取り消す合図として、少し凹むようにします！ */
+  transform: scale(0.95);
 }
 
 /* ━━━━━━━ 入力フォーム ━━━━━━━ */
