@@ -1,50 +1,21 @@
 // app/page.tsx
-import React from "react";
+"use client"; // localStorageやuseStateを使うため、クライアントサイド（ブラウザ）で動かします
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link"; // ページを移動するための「Link（リンク）」を読み込みます
-
-// グミの投稿データの「かたち（データ構造）」を定義します
-type Post = {
-  id: string;
-  author: string;
-  gummyName: string;
-  text: string;
-  stars: number;
-  hardness: string; // 食感（かたさ）
-  createdAt: string;
-};
-
-// 画面に表示する、サンプルの投稿データを3つ用意します
-const INITIAL_POSTS: Post[] = [
-  {
-    id: "1",
-    author: "グミすき人間",
-    gummyName: "ぷにぷにぶどうグミ",
-    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄の形をしていて可愛い💜",
-    stars: 5,
-    hardness: "やわらかめ",
-    createdAt: "2026-05-31 12:00",
-  },
-  {
-    id: "2",
-    author: "ハード派のタクミ",
-    gummyName: "タフグミ コーラ味",
-    text: "あごが鍛えられるくらいのかなりのハード系！噛みごたえ抜群で、すっきりした炭酸フレーバー。勉強中に集中したい時の相棒です。リピ確定！🔥",
-    stars: 4,
-    hardness: "超ハード",
-    createdAt: "2026-05-31 11:30",
-  },
-  {
-    id: "3",
-    author: "ももいろ",
-    gummyName: "じゅわピチピーチグミ",
-    text: "まるで本物の桃を食べてるみたいな、ねっとりした贅沢な食感！ぷっくりしたハートの形をしていて見た目も映えます🍑✨",
-    stars: 5,
-    hardness: "ふつう",
-    createdAt: "2026-05-31 10:15",
-  },
-];
+import { getPosts, type Post } from "@/lib/storage"; // メモ帳から読み出す関数と、データの型を読み込みます
 
 export default function Home() {
+  // 投稿データを覚えておくための state（ステイト）です。最初は空のリストにしておきます
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  // 画面が最初に表示された「瞬間」に1回だけ実行される処理です
+  useEffect(() => {
+    // メモ帳（localStorage）からすべてのレビューデータを読み込んで、画面に覚えさせます
+    const savedPosts = getPosts();
+    setPosts(savedPosts);
+  }, []);
+
   return (
     <main>
       {/* アプリのヘッダー部分 */}
@@ -61,7 +32,7 @@ export default function Home() {
 
       {/* タイムライン（投稿一覧） */}
       <div className="timeline">
-        {INITIAL_POSTS.map((post) => (
+        {posts.map((post) => (
           <div key={post.id} className="card">
             {/* 投稿の上の部分（名前や日付） */}
             <div className="card-header">
@@ -80,6 +51,13 @@ export default function Home() {
             </div>
           </div>
         ))}
+
+        {/* もし投稿が1件も無くなった場合の表示 */}
+        {posts.length === 0 && (
+          <p style={{ textAlign: "center", color: "var(--text-light)", marginTop: "40px" }}>
+            まだレビューがありません。最初のレビューを投稿してみましょう！✍️
+          </p>
+        )}
       </div>
     </main>
   );

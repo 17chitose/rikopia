@@ -3,8 +3,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ページを自動で切り替えるための道具です
+import { savePost } from "@/lib/storage"; // さきほど作った保存用の命令を読み込みます
 
 export default function NewPost() {
+  const router = useRouter(); // ページ切り替えの機能を使えるようにします
+
   // 画面が入力項目を覚えておくための「state（ステイト）」を用意します
   const [author, setAuthor] = useState("");
   const [gummyName, setGummyName] = useState("");
@@ -22,15 +26,19 @@ export default function NewPost() {
       return;
     }
 
-    // ここではまだ保存をせず、入力された内容をポップアップ（アラート）で表示します
-    alert(
-      `レビューを受け取りました！🎉\n\n` +
-      `👤 名前: ${author}\n` +
-      `🍬 グミ名: ${gummyName}\n` +
-      `⭐ 評価: ${"★".repeat(stars)}\n` +
-      `🔥 食感: ${hardness}\n\n` +
-      `※実際に保存する機能は、次のステップで実装します！`
-    );
+    // 実際に「localStorage（ブラウザのメモ帳）」に保存します！
+    savePost({
+      author,
+      gummyName,
+      text,
+      stars,
+      hardness,
+    });
+
+    alert("レビューを投稿しました！🎉");
+
+    // 保存が完了したら、トップページ（タイムライン）に自動で戻ります
+    router.push("/");
   };
 
   return (
