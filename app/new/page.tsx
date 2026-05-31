@@ -1,15 +1,15 @@
 // app/new/page.tsx
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react"; // Suspenseを追加
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation"; // useSearchParams（URLパラメータの読み取り機能）を追加
+import { useRouter, useSearchParams } from "next/navigation";
 import { savePost, getProfile } from "@/lib/storage";
 
-// 入力フォームの本体部分を別のコンポーネントとして切り分けます
+// 入力フォームの本体部分
 function NewPostForm() {
   const router = useRouter();
-  const searchParams = useSearchParams(); // URLのパラメータ（?gummy=〇〇）を読み取ります
+  const searchParams = useSearchParams();
 
   const [author, setAuthor] = useState("");
   const [gummyName, setGummyName] = useState("");
@@ -19,28 +19,29 @@ function NewPostForm() {
 
   // ページを開いた瞬間に実行する処理
   useEffect(() => {
-    // 1. プロフィール名を取得してセット
     const profile = getProfile();
     if (profile && profile.name) {
       setAuthor(profile.name);
     }
 
-    // 2. 🆕 もしURLに「?gummy=〇〇」という指定があれば、グミの名前に自動入力します！
     const gummyParam = searchParams.get("gummy");
     if (gummyParam) {
       setGummyName(gummyParam);
     }
   }, [searchParams]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // 🔌 変更：「レビューを投稿する」ボタンが押された時の非同期処理
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // ページが勝手に再読み込みされるのを防ぎます
     
+    // 必須入力のチェック
     if (!author || !gummyName || !text) {
       alert("すべての項目を入力してください！");
       return;
     }
 
-    savePost({
+    // 🔌 変更：実際に「Supabaseのデータベース」に非同期で保存します！
+    await savePost({
       author,
       gummyName,
       text,
@@ -142,7 +143,6 @@ function NewPostForm() {
   );
 }
 
-// 🆕 メインのページコンポーネントです（useSearchParamsの動作エラーを防ぐため、Suspenseで包み込みます）
 export default function NewPost() {
   return (
     <Suspense fallback={

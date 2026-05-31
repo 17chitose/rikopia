@@ -7,36 +7,39 @@ import { getPosts, deletePost, likePost, getMyLikedPosts, type Post } from "@/li
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [myLikedPosts, setMyLikedPosts] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<"newest" | "likes">("newest"); // 🆕 追加：並び替えの基準（最新順 / 人気順）を覚えておくstate
+  const [sortBy, setSortBy] = useState<"newest" | "likes">("newest");
 
-  // 画面が表示された瞬間にデータを読み込みます
-  useEffect(() => {
-    setPosts(getPosts());
+  // 🔌 変更：Supabaseから非同期でデータを取得して画面にセットする関数を作ります
+  const loadData = async () => {
+    const savedPosts = await getPosts(); // データの受信を待ちます
+    setPosts(savedPosts);
     setMyLikedPosts(getMyLikedPosts());
+  };
+
+  // 画面が表示された瞬間にデータを取得します
+  useEffect(() => {
+    loadData();
   }, []);
 
-  // 「削除」ボタンが押された時の処理
-  const handleDelete = (id: string) => {
+  // 🔌 変更：「削除」ボタンが押された時の非同期処理
+  const handleDelete = async (id: string) => {
     if (confirm("このレビューを削除してもよろしいですか？")) {
-      const updated = deletePost(id);
-      setPosts(updated);
+      await deletePost(id); // データベースからの削除完了を待ちます
+      await loadData(); // 最新のデータを再読み込みします
     }
   };
 
-  // ❤️ 「いいね！」ボタンが押された時の処理
-  const handleLike = (id: string) => {
-    const updated = likePost(id);
-    setPosts(updated);
-    setMyLikedPosts(getMyLikedPosts());
+  // 🔌 変更：「いいね！」ボタンが押された時の非同期処理
+  const handleLike = async (id: string) => {
+    await likePost(id); // データベースのいいね数更新を待ちます
+    await loadData(); // 最新のデータを再読み込みします
   };
 
-  // 🆕 追加：選択されている基準に従って、投稿データを瞬時に並び替えます
+  // 選択されている基準に従って、投稿データを瞬時に並び替えます
   const sortedPosts = [...posts].sort((a, b) => {
     if (sortBy === "likes") {
-      // 🔥 人気順：いいね！の数が多い順（降順）に並び替えます
       return (b.likes || 0) - (a.likes || 0);
     }
-    // 🆕 最新順：投稿ID（タイムスタンプ）が大きい順（降順）に並び替えます
     return b.id.localeCompare(a.id);
   });
 
@@ -48,7 +51,7 @@ export default function Home() {
         <p className="subtitle">お気に入りのグミをみんなでシェアしよう！</p>
       </div>
 
-      {/* 🆕 追加：並び替え用のスイッチボタンバー */}
+      {/* 並び替え用のスイッチボタンバー */}
       <div className="sort-bar">
         <button
           onClick={() => setSortBy("newest")}
@@ -64,10 +67,9 @@ export default function Home() {
         </button>
       </div>
 
-      {/* タイムライン（並び替えた後の sortedPosts を表示します） */}
+      {/* タイムライン */}
       <div className="timeline">
         {sortedPosts.map((post) => {
-          // 自分がこの投稿にすでにいいね！しているかチェック
           const isLiked = myLikedPosts.includes(post.id);
 
           return (

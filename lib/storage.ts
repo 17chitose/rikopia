@@ -1,4 +1,5 @@
 // lib/storage.ts
+import { supabase } from "./supabase"; // 🔌 追記：さきほど作ったSupabaseへの窓口を読み込みます
 
 // レビュー投稿のデータの「かたち」を定義します
 export type Post = {
@@ -9,7 +10,7 @@ export type Post = {
   stars: number;
   hardness: string; // かたさ
   createdAt: string; // 投稿した時間
-  likes: number; // ❤️ いいね！の数
+  likes: number; // いいね！の数
 };
 
 // プロフィールのデータの「かたち」を定義します
@@ -21,33 +22,8 @@ export type Profile = {
 };
 
 // メモ帳の引き出しに貼るラベルの名前です
-const STORAGE_KEY = "gummy_reviews_posts";
 const PROFILE_KEY = "gummy_profile";
 const LIKED_POSTS_KEY = "my_liked_posts"; // 自分がいいねした投稿IDを保存するキー
-
-// 最初の1回目の時に表示する、サンプル用の投稿データです
-const INITIAL_POSTS: Post[] = [
-  {
-    id: "1",
-    author: "グミすき人間",
-    gummyName: "ぷにぷにぶどうグミ",
-    text: "口に入れた瞬間のジューシーさが半端ない！周りのパウダーがほどよくすっぱくて、食べる手が止まらなくなります。パッケージも葡萄の形をしていて可愛い💜",
-    stars: 5,
-    hardness: "やわらかめ",
-    createdAt: "2026/05/31 12:00",
-    likes: 12,
-  },
-  {
-    id: "2",
-    author: "ハード派 of タクミ",
-    gummyName: "タフグミ コーラ味",
-    text: "あごが鍛えられるくらいのかなりのハード系！噛みごたえ抜群で、すっきりした炭酸フレーバー。勉強中に集中したい時の相棒です。リピ確定！🔥",
-    stars: 4,
-    hardness: "超ハード",
-    createdAt: "2026/05/31 11:30",
-    likes: 5,
-  },
-];
 
 // プロフィールの初期データ
 const DEFAULT_PROFILE: Profile = {
@@ -57,51 +33,86 @@ const DEFAULT_PROFILE: Profile = {
   avatar: "🦖",
 };
 
-/* ━━━━━━━ 投稿（ポスト）の処理 ━━━━━━━ */
+/* ━━━━━━━ 投稿（ポスト）の処理（🔌 Supabase対応に書き換え） ━━━━━━━ */
 
-// 【読み込み】メモ帳からすべての投稿を読み出す関数
-export function getPosts(): Post[] {
-  if (typeof window === "undefined") return INITIAL_POSTS;
+// 🔌【読み込み】Supabaseのデータベースからすべての投稿を読み出す関数
+export async function getPosts(): Promise<Post[]> {
+  try {
+    const { data, error } = await supabase
+      .from("posts") // あなたが作った「posts」テーブルから
+      .select("*")   // すべての項目を取得し
+      .order("created_at", { ascending: false }); // 投稿時間が新しい順（降順）に並び替えます
 
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_POSTS));
-    return INITIAL_POSTS;
+    if (error) {
+      console.error("データ取得エラー:", error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // Supabaseのテーブルのカラム名（スネークケースなど）を、アプリで使う形式に変換します
+    return data.map((item) => ({
+      id: item.id.toString(),
+      author: item.author || "名無しさん",
+      gummyName: item.gummy_name || "",
+      text: item.text || "",
+      stars: item.stars || 5,
+      hardness: item.hardness || "ふつう",
+      // 日時を日本のタイムゾーンの綺麗な文字列にフォーマットします
+      createdAt: item.created_at ? new Date(item.created_at).toLocaleString("ja-JP") : "",
+      likes: item.likes || 0,
+    }));
+  } catch (err) {
+    console.error("接続エラー:", err);
+    return [];
   }
-  return JSON.parse(data);
 }
 
-// 【保存】新しい投稿をメモ帳に新しく書き加える関数
-export function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">): Post {
-  const posts = getPosts();
-  
-  const now = new Date();
-  const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+// 🔌【保存】新しい投稿をSupabaseのデータベースに保存する関数
+export async function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("posts")
+      .insert([
+        {
+          author: newPost.author,
+          gummy_name: newPost.gummyName,
+          text: newPost.text,
+          stars: newPost.stars,
+          hardness: newPost.hardness,
+          likes: 0, // 新しい投稿はいいね！ 0個からスタート
+        }
+      ]);
 
-  const post: Post = {
-    ...newPost,
-    id: Date.now().toString(),
-    createdAt: formattedDate,
-    likes: 0,
-  };
-
-  const updatedPosts = [post, ...posts];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
-  return post;
+    if (error) {
+      console.error("保存エラー:", error);
+      throw error;
+    }
+  } catch (err) {
+    console.error("保存接続エラー:", err);
+    throw err;
+  }
 }
 
-// 【削除】指定された投稿をメモ帳から消去する関数
-export function deletePost(id: string): Post[] {
-  if (typeof window === "undefined") return [];
-  
-  const posts = getPosts();
-  const updatedPosts = posts.filter((post) => post.id !== id);
-  
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
-  return updatedPosts;
+// 🔌【削除】指定された投稿をSupabaseのデータベースから削除する関数
+export async function deletePost(id: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", Number(id)); // id列が一致するものを消去します
+
+    if (error) {
+      console.error("削除エラー:", error);
+      throw error;
+    }
+  } catch (err) {
+    console.error("削除接続エラー:", err);
+    throw err;
+  }
 }
 
-// 【いいね済みリスト取得】自分がいいねした投稿IDのリストを取得する関数
+// 【いいね済みリスト取得】自分がいいねした投稿IDのリストを取得する関数（ブラウザのメモ帳に残します）
 export function getMyLikedPosts(): string[] {
   if (typeof window === "undefined") return [];
   const data = localStorage.getItem(LIKED_POSTS_KEY);
@@ -109,45 +120,58 @@ export function getMyLikedPosts(): string[] {
   return JSON.parse(data);
 }
 
-// ❤️ 【いいね！トグル】いいね！の追加と取り消しを切り替える関数にアップデートしました
-export function likePost(id: string): Post[] {
-  if (typeof window === "undefined") return [];
-  
-  const likedIds = getMyLikedPosts();
-  const isAlreadyLiked = likedIds.includes(id);
+// 🔌【いいね！トグル】いいね！の追加と取り消し（Supabase対応）
+export async function likePost(id: string): Promise<void> {
+  try {
+    const likedIds = getMyLikedPosts();
+    const isAlreadyLiked = likedIds.includes(id);
 
-  let updatedLikedIds: string[];
-  let likesDiff: number; // いいね数を増やす(+1)か、減らす(-1)かを決める変数です
+    let updatedLikedIds: string[];
+    let likesDiff: number;
 
-  if (isAlreadyLiked) {
-    // 💔 すでにいいね済みの場合：リストからIDを削除し、いいね数を -1 します
-    updatedLikedIds = likedIds.filter((likedId) => likedId !== id);
-    likesDiff = -1;
-  } else {
-    // ❤️ まだいいねしていない場合：リストにIDを追加し、いいね数を +1 します
-    updatedLikedIds = [...likedIds, id];
-    likesDiff = 1;
-  }
-
-  // 新しいいいね済みリストを保存します
-  localStorage.setItem(LIKED_POSTS_KEY, JSON.stringify(updatedLikedIds));
-
-  // 投稿データのいいね数を更新します
-  const posts = getPosts();
-  const updatedPosts = posts.map((post) => {
-    if (post.id === id) {
-      const currentLikes = post.likes || 0;
-      // いいね数がマイナスにならないように、Math.max(0, ...) で最低でも0個にします
-      return { ...post, likes: Math.max(0, currentLikes + likesDiff) };
+    if (isAlreadyLiked) {
+      updatedLikedIds = likedIds.filter((likedId) => likedId !== id);
+      likesDiff = -1;
+    } else {
+      updatedLikedIds = [...likedIds, id];
+      likesDiff = 1;
     }
-    return post;
-  });
-  
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
-  return updatedPosts;
+
+    // 1. ローカルのいいね済みリストを更新（自分だけのメモ）
+    localStorage.setItem(LIKED_POSTS_KEY, JSON.stringify(updatedLikedIds));
+
+    // 2. Supabase上の今のいいね数を取得して、更新します
+    // まず今の投稿データを取得
+    const { data: postData, error: fetchError } = await supabase
+      .from("posts")
+      .select("likes")
+      .eq("id", Number(id))
+      .single();
+
+    if (fetchError || !postData) {
+      console.error("いいね数取得エラー:", fetchError);
+      return;
+    }
+
+    const currentLikes = postData.likes || 0;
+    const newLikes = Math.max(0, currentLikes + likesDiff);
+
+    // Supabase上のいいね数（likes）を更新します
+    const { error: updateError } = await supabase
+      .from("posts")
+      .update({ likes: newLikes })
+      .eq("id", Number(id));
+
+    if (updateError) {
+      console.error("いいね更新エラー:", updateError);
+      throw updateError;
+    }
+  } catch (err) {
+    console.error("いいね接続エラー:", err);
+  }
 }
 
-/* ━━━━━━━ プロフィールの処理 ━━━━━━━ */
+/* ━━━━━━━ プロフィールの処理（ローカルでキープ） ━━━━━━━ */
 
 // 【プロフィール取得】メモ帳からプロフィールを読み込む関数
 export function getProfile(): Profile {
