@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        {/* 全ページで共通表示されるヘッダーメニューです */}
+        {/* 全ページで共通表示されるヘッダーメニュー */}
         <header className="global-header">
           <div className="header-inner">
             <Link href="/" className="logo-link">
@@ -26,7 +26,6 @@ export default function RootLayout({
               <Link href="/" className="nav-item">
                 🏠 ホーム
               </Link>
-              {/* 🆕 追加：グミ診断ゲームへのリンクです */}
               <Link href="/recommend" className="nav-item">
                 🎯 診断
               </Link>
@@ -35,6 +34,10 @@ export default function RootLayout({
               </Link>
               <Link href="/profile" className="nav-item">
                 👤 プロフ
+              </Link>
+              {/* 🆕 追加：ログイン画面への移動ボタン */}
+              <Link href="/login" className="nav-item">
+                🔑 ログイン
               </Link>
             </nav>
           </div>
