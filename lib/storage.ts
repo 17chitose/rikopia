@@ -11,8 +11,16 @@ export type Post = {
   createdAt: string; // 投稿した時間
 };
 
+// プロフィールのデータの「かたち」を定義します
+export type Profile = {
+  name: string;
+  favoriteGummy: string;
+  bio: string;
+};
+
 // メモ帳の引き出しに貼るラベルの名前です
 const STORAGE_KEY = "gummy_reviews_posts";
+const PROFILE_KEY = "gummy_profile";
 
 // 最初の1回目の時に表示する、サンプル用の投稿データです
 const INITIAL_POSTS: Post[] = [
@@ -27,7 +35,7 @@ const INITIAL_POSTS: Post[] = [
   },
   {
     id: "2",
-    author: "ハード派のタクミ",
+    author: "ハード派 of タクミ",
     gummyName: "タフグミ コーラ味",
     text: "あごが鍛えられるくらいのかなりのハード系！噛みごたえ抜群で、すっきりした炭酸フレーバー。勉強中に集中したい時の相棒です。リピ確定！🔥",
     stars: 4,
@@ -36,42 +44,73 @@ const INITIAL_POSTS: Post[] = [
   },
 ];
 
-// 【読み込み】メモ帳からすべての投稿を読み出す関数（命令）です
+// プロフィールの初期データ（まだ登録していない時の名前）
+const DEFAULT_PROFILE: Profile = {
+  name: "グミ初心者",
+  favoriteGummy: "フィットチーネグミ（仮）",
+  bio: "グミが大好きです！これからいろんなレビューを投稿します！",
+};
+
+/* ━━━━━━━ 投稿（ポスト）の処理 ━━━━━━━ */
+
+// 【読み込み】メモ帳からすべての投稿を読み出す関数
 export function getPosts(): Post[] {
-  // サーバー側ではなく、ブラウザで動いているときだけ実行します
   if (typeof window === "undefined") return INITIAL_POSTS;
 
   const data = localStorage.getItem(STORAGE_KEY);
-  
   if (!data) {
-    // もしまだ一度もメモ帳に何も書いていなければ、最初のサンプルデータを保存しておきます
     localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_POSTS));
     return INITIAL_POSTS;
   }
-  
-  // 保存されているテキストデータを、プログラムが読める形に変換して返します
   return JSON.parse(data);
 }
 
-// 【保存】新しい投稿をメモ帳に新しく書き加える関数（命令）です
+// 【保存】新しい投稿をメモ帳に新しく書き加える関数
 export function savePost(newPost: Omit<Post, "id" | "createdAt">): Post {
   const posts = getPosts();
   
-  // 今の日時を取得します
   const now = new Date();
   const formattedDate = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  // 新しい投稿のデータを作ります（IDと時間を自動で割り振ります）
   const post: Post = {
     ...newPost,
-    id: Date.now().toString(), // 重複しない適当な数字をIDにします
+    id: Date.now().toString(),
     createdAt: formattedDate,
   };
 
-  // 新しい投稿が一番上にくるように、リストの先頭に追加します
   const updatedPosts = [post, ...posts];
-  
-  // メモ帳（localStorage）にテキストとして保存します
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
   return post;
+}
+
+// 【削除】指定された投稿をメモ帳から消去する関数
+export function deletePost(id: string): Post[] {
+  if (typeof window === "undefined") return [];
+  
+  const posts = getPosts();
+  // 指定されたID「以外」の投稿だけを残す（＝指定されたIDを消す）フィルター処理です
+  const updatedPosts = posts.filter((post) => post.id !== id);
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPosts));
+  return updatedPosts;
+}
+
+/* ━━━━━━━ プロフィールの処理 ━━━━━━━ */
+
+// 【プロフィール取得】メモ帳からプロフィールを読み込む関数
+export function getProfile(): Profile {
+  if (typeof window === "undefined") return DEFAULT_PROFILE;
+  
+  const data = localStorage.getItem(PROFILE_KEY);
+  if (!data) {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(DEFAULT_PROFILE));
+    return DEFAULT_PROFILE;
+  }
+  return JSON.parse(data);
+}
+
+// 【プロフィール保存】プロフィールを新しく上書き保存する関数
+export function saveProfile(profile: Profile): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
 }

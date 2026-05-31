@@ -1,10 +1,10 @@
 // app/new/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // ページを自動で切り替えるための道具です
-import { savePost } from "@/lib/storage"; // さきほど作った保存用の命令を読み込みます
+import { savePost, getProfile } from "@/lib/storage"; // 保存用の命令と、プロフィール読み込みの命令を読み込みます
 
 export default function NewPost() {
   const router = useRouter(); // ページ切り替えの機能を使えるようにします
@@ -15,6 +15,14 @@ export default function NewPost() {
   const [text, setText] = useState("");
   const [stars, setStars] = useState(5);
   const [hardness, setHardness] = useState("ふつう");
+
+  // ページを開いた瞬間に、プロフィールに設定されている名前を自動でセットします！
+  useEffect(() => {
+    const profile = getProfile();
+    if (profile && profile.name) {
+      setAuthor(profile.name);
+    }
+  }, []);
 
   // 「レビューを投稿する」ボタンが押された時の処理です
   const handleSubmit = (e: React.FormEvent) => {
