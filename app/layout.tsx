@@ -26,6 +26,10 @@ export default function RootLayout({
               <Link href="/" className="nav-item">
                 🏠 ホーム
               </Link>
+              {/* 🆕 追加：グミ診断ゲームへのリンクです */}
+              <Link href="/recommend" className="nav-item">
+                🎯 診断
+              </Link>
               <Link href="/new" className="nav-item">
                 ✍️ レビュー
               </Link>

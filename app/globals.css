@@ -55,15 +55,15 @@ main {
 
 .header-nav {
   display: flex;
-  gap: 6px;
+  gap: 4px; /* 👤 メニューが増えるため少し隙間を詰めました */
 }
 
 .nav-item {
-  font-size: 0.8rem;
+  font-size: 0.75rem; /* 👤 少しだけ文字サイズを調整 */
   font-weight: 600;
   color: var(--text-light);
   text-decoration: none;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -76,7 +76,7 @@ main {
 /* ━━━━━━━ 各ページのヘッダー（タイトル） ━━━━━━━ */
 .header-container {
   text-align: left;
-  margin-bottom: 24px; /* 👤 少し余白を詰めました（並び替えバーが入るため） */
+  margin-bottom: 24px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 20px;
 }
@@ -94,7 +94,7 @@ main {
   font-size: 0.85rem;
 }
 
-/* ━━━━━━━ 🆕 並び替えバーのスタイルを追加しました ━━━━━━━ */
+/* ━━━━━━━ 並び替えバー ━━━━━━━ */
 .sort-bar {
   display: flex;
   gap: 8px;
@@ -118,7 +118,6 @@ main {
   color: var(--primary-color);
 }
 
-/* 現在選択されている並び替えボタンのスタイル */
 .sort-btn.active {
   background-color: var(--primary-color);
   color: #ffffff;
@@ -217,7 +216,7 @@ main {
   background-color: #fee2e2;
 }
 
-/* ❤️ いいね！ボタン（通常時：白いハート） */
+/* ❤️ いいね！ボタン */
 .like-btn {
   background-color: #ffffff;
   color: #6b7280;
@@ -240,7 +239,6 @@ main {
   transform: scale(1.05);
 }
 
-/* ❤️ いいね済み状態（すでに押してあるとき）の可愛いスタイル */
 .like-btn.liked {
   background-color: #fff1f2;
   color: #f43f5e;
@@ -328,7 +326,7 @@ main {
   color: var(--primary-color);
 }
 
-/* ━━━━━━━ プロフィール表示用の可愛いカード ━━━━━━━ */
+/* ━━━━━━━ プロフィールカード ━━━━━━━ */
 .profile-card {
   background: var(--card-bg);
   border-radius: 12px;
@@ -373,4 +371,99 @@ main {
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #f3f4f6;
+}
+
+/* ━━━━━━━ 🆕 診断（Quiz）用のスタイルを追加しました ━━━━━━━ */
+.quiz-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 32px 24px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.quiz-progress {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #3b82f6;
+  background-color: #eff6ff;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.quiz-question {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quiz-opt-btn {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.quiz-opt-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* 診断結果画面 */
+.result-card {
+  background-color: #f0fdf4; /* ほんのり優しいグリーン（お祝い色） */
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 28px 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.result-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #16a34a;
+  background-color: #dcfce7;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+
+.result-gummy {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #15803d;
+  margin-bottom: 12px;
+}
+
+.result-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #374151;
+  text-align: left;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e8f5e9;
+  margin-bottom: 16px;
 }

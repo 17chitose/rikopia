@@ -1,40 +1,45 @@
 // app/new/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react"; // Suspenseを追加
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // ページを自動で切り替えるための道具です
-import { savePost, getProfile } from "@/lib/storage"; // 保存用の命令と、プロフィール読み込みの命令を読み込みます
+import { useRouter, useSearchParams } from "next/navigation"; // useSearchParams（URLパラメータの読み取り機能）を追加
+import { savePost, getProfile } from "@/lib/storage";
 
-export default function NewPost() {
-  const router = useRouter(); // ページ切り替えの機能を使えるようにします
+// 入力フォームの本体部分を別のコンポーネントとして切り分けます
+function NewPostForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams(); // URLのパラメータ（?gummy=〇〇）を読み取ります
 
-  // 画面が入力項目を覚えておくための「state（ステイト）」を用意します
   const [author, setAuthor] = useState("");
   const [gummyName, setGummyName] = useState("");
   const [text, setText] = useState("");
   const [stars, setStars] = useState(5);
   const [hardness, setHardness] = useState("ふつう");
 
-  // ページを開いた瞬間に、プロフィールに設定されている名前を自動でセットします！
+  // ページを開いた瞬間に実行する処理
   useEffect(() => {
+    // 1. プロフィール名を取得してセット
     const profile = getProfile();
     if (profile && profile.name) {
       setAuthor(profile.name);
     }
-  }, []);
 
-  // 「レビューを投稿する」ボタンが押された時の処理です
+    // 2. 🆕 もしURLに「?gummy=〇〇」という指定があれば、グミの名前に自動入力します！
+    const gummyParam = searchParams.get("gummy");
+    if (gummyParam) {
+      setGummyName(gummyParam);
+    }
+  }, [searchParams]);
+
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // ページが勝手に再読み込みされるのを防ぎます
+    e.preventDefault();
     
-    // 必須入力のチェック
     if (!author || !gummyName || !text) {
       alert("すべての項目を入力してください！");
       return;
     }
 
-    // 実際に「localStorage（ブラウザのメモ帳）」に保存します！
     savePost({
       author,
       gummyName,
@@ -44,8 +49,6 @@ export default function NewPost() {
     });
 
     alert("レビューを投稿しました！🎉");
-
-    // 保存が完了したら、トップページ（タイムライン）に自動で戻ります
     router.push("/");
   };
 
@@ -57,7 +60,7 @@ export default function NewPost() {
       </div>
 
       <form onSubmit={handleSubmit} className="form-card">
-        {/* ニックネーム入力欄 */}
+        {/* ニックネーム */}
         <div className="form-group">
           <label className="label" htmlFor="author">ニックネーム</label>
           <input
@@ -70,7 +73,7 @@ export default function NewPost() {
           />
         </div>
 
-        {/* グミの名前入力欄 */}
+        {/* グミの名前 */}
         <div className="form-group">
           <label className="label" htmlFor="gummyName">グミの名前</label>
           <input
@@ -83,7 +86,7 @@ export default function NewPost() {
           />
         </div>
 
-        {/* レビュー本文入力欄 */}
+        {/* レビュー本文 */}
         <div className="form-group">
           <label className="label" htmlFor="text">レビュー内容</label>
           <textarea
@@ -95,7 +98,7 @@ export default function NewPost() {
           />
         </div>
 
-        {/* 面白くした5段階の評価 */}
+        {/* 評価 */}
         <div className="form-group">
           <label className="label" htmlFor="stars">おすすめ度 (5段階)</label>
           <select
@@ -112,7 +115,7 @@ export default function NewPost() {
           </select>
         </div>
 
-        {/* 食感（かたさ） */}
+        {/* 食感 */}
         <div className="form-group">
           <label className="label" htmlFor="hardness">食感（かたさ）</label>
           <select
@@ -129,14 +132,25 @@ export default function NewPost() {
           </select>
         </div>
 
-        {/* 送信ボタン */}
         <button type="submit" className="submit-btn">レビューを投稿する</button>
       </form>
 
-      {/* トップページへ戻るリンク */}
       <Link href="/" className="back-link">
         ← タイムラインに戻る
       </Link>
     </main>
+  );
+}
+
+// 🆕 メインのページコンポーネントです（useSearchParamsの動作エラーを防ぐため、Suspenseで包み込みます）
+export default function NewPost() {
+  return (
+    <Suspense fallback={
+      <main style={{ textAlign: "center", padding: "40px" }}>
+        <p>画面を準備中...</p>
+      </main>
+    }>
+      <NewPostForm />
+    </Suspense>
   );
 }
