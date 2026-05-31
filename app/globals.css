@@ -164,7 +164,7 @@ main {
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
-  margin-right: auto; /* ❤️ 追加：いいねボタンを右端に寄せるために、かたさバッジの右側に余白を作ります */
+  margin-right: auto;
 }
 
 /* 🗑️ 削除ボタン */
@@ -206,7 +206,16 @@ main {
   background-color: #f43f5e;
   color: #ffffff;
   border-color: #f43f5e;
-  transform: scale(1.05); /* マウスをのせた時に少しぷっくり大きくします */
+  transform: scale(1.05);
+}
+
+/* ❤️ いいね済み（無効化）時のスタイルを追加しました */
+.like-btn:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  border-color: #d1d5db;
+  cursor: not-allowed; /* マウスカーソルを「禁止マーク」にします */
+  transform: none; /* ホバー時の拡大を無効化 */
 }
 
 /* ━━━━━━━ 入力フォーム ━━━━━━━ */

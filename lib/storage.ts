@@ -1,6 +1,6 @@
 // lib/storage.ts
 
-// レビュー投稿のデータの「かたち」を定義します（いいね数を追加しました）
+// レビュー投稿のデータの「かたち」を定義します
 export type Post = {
   id: string;
   author: string;
@@ -9,7 +9,7 @@ export type Post = {
   stars: number;
   hardness: string; // かたさ
   createdAt: string; // 投稿した時間
-  likes: number; // ❤️ 追加：いいね！の数
+  likes: number; // ❤️ いいね！の数
 };
 
 // プロフィールのデータの「かたち」を定義します
@@ -23,8 +23,9 @@ export type Profile = {
 // メモ帳の引き出しに貼るラベルの名前です
 const STORAGE_KEY = "gummy_reviews_posts";
 const PROFILE_KEY = "gummy_profile";
+const LIKED_POSTS_KEY = "my_liked_posts"; // ❤️ 追加：自分がいいねした投稿IDを保存するキー
 
-// 最初の1回目の時に表示する、サンプル用の投稿データです（最初からいいね！が入っているようにします）
+// 最初の1回目の時に表示する、サンプル用の投稿データです
 const INITIAL_POSTS: Post[] = [
   {
     id: "1",
@@ -34,7 +35,7 @@ const INITIAL_POSTS: Post[] = [
     stars: 5,
     hardness: "やわらかめ",
     createdAt: "2026/05/31 12:00",
-    likes: 12, // ❤️ 初期いいね！数
+    likes: 12,
   },
   {
     id: "2",
@@ -44,7 +45,7 @@ const INITIAL_POSTS: Post[] = [
     stars: 4,
     hardness: "超ハード",
     createdAt: "2026/05/31 11:30",
-    likes: 5, // ❤️ 初期いいね！数
+    likes: 5,
   },
 ];
 
@@ -81,7 +82,7 @@ export function savePost(newPost: Omit<Post, "id" | "createdAt" | "likes">): Pos
     ...newPost,
     id: Date.now().toString(),
     createdAt: formattedDate,
-    likes: 0, // ❤️ 追加：新しい投稿は、いいね！ 0個からスタートします
+    likes: 0,
   };
 
   const updatedPosts = [post, ...posts];
@@ -100,12 +101,31 @@ export function deletePost(id: string): Post[] {
   return updatedPosts;
 }
 
-// ❤️ 【いいね！追加】指定された投稿のいいね！数を1つ増やす関数
+// ❤️ 【いいね済みリスト取得】自分がいいねした投稿IDのリストを取得する関数
+export function getMyLikedPosts(): string[] {
+  if (typeof window === "undefined") return [];
+  const data = localStorage.getItem(LIKED_POSTS_KEY);
+  if (!data) return [];
+  return JSON.parse(data);
+}
+
+// ❤️ 【いいね！追加】指定された投稿のいいね！数を1つ増やす関数（1回のみのルールを追加）
 export function likePost(id: string): Post[] {
   if (typeof window === "undefined") return [];
   
+  const likedIds = getMyLikedPosts();
+  
+  // 🚫 もしすでにいいね済みリストにこのIDが入っていたら、何もしないで現在のリストを返します
+  if (likedIds.includes(id)) {
+    return getPosts();
+  }
+
+  // いいね済みリストに、新しくこの投稿のIDを追加して保存します
+  const updatedLikedIds = [...likedIds, id];
+  localStorage.setItem(LIKED_POSTS_KEY, JSON.stringify(updatedLikedIds));
+
+  // 投稿データのいいね数を1つ増やします
   const posts = getPosts();
-  // 該当するIDの投稿だけ、いいねの数を+1するループ（map）処理です
   const updatedPosts = posts.map((post) => {
     if (post.id === id) {
       const currentLikes = post.likes || 0;

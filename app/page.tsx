@@ -2,19 +2,19 @@
 "use client"; // localStorageやuseStateを使うため、クライアントサイド（ブラウザ）で動かします
 
 import React, { useState, useEffect } from "react";
-import { getPosts, deletePost, likePost, type Post } from "@/lib/storage"; // getPosts, deletePostに加えて、likePost（いいねを増やす命令）を追加で読み込みます
+import { getPosts, deletePost, likePost, getMyLikedPosts, type Post } from "@/lib/storage"; // getMyLikedPosts（いいね済みリスト取得）を追加で読み込みます
 
 export default function Home() {
-  // 投稿データを覚えておくための state です
   const [posts, setPosts] = useState<Post[]>([]);
+  const [myLikedPosts, setMyLikedPosts] = useState<string[]>([]); // ❤️ 追加：自分がすでにいいね！した投稿IDのリストを覚えるstate
 
-  // 画面が表示された瞬間に1回だけデータを読み込みます
+  // 画面が表示された瞬間にデータを読み込みます
   useEffect(() => {
-    const savedPosts = getPosts();
-    setPosts(savedPosts);
+    setPosts(getPosts());
+    setMyLikedPosts(getMyLikedPosts()); // いいね済みリストも最初に読み込みます
   }, []);
 
-  // 「削除」ボタンが押された時の処理です
+  // 「削除」ボタンが押された時の処理
   const handleDelete = (id: string) => {
     if (confirm("このレビューを削除してもよろしいですか？")) {
       const updated = deletePost(id);
@@ -22,11 +22,11 @@ export default function Home() {
     }
   };
 
-  // ❤️ 「いいね！」ボタンが押された時の処理です
+  // ❤️ 「いいね！」ボタンが押された時の処理
   const handleLike = (id: string) => {
-    // メモ帳のいいね！数を1つ増やし、最新の投稿リストを画面に再読み込みさせます
     const updated = likePost(id);
     setPosts(updated);
+    setMyLikedPosts(getMyLikedPosts()); // いいね！したあと、最新のいいねリストを再取得して画面を更新します
   };
 
   return (
@@ -39,43 +39,49 @@ export default function Home() {
 
       {/* タイムライン（投稿一覧） */}
       <div className="timeline">
-        {posts.map((post) => (
-          <div key={post.id} className="card">
-            {/* 🗑️ 削除ボタン */}
-            <button
-              onClick={() => handleDelete(post.id)}
-              className="delete-btn"
-              title="レビューを削除する"
-            >
-              🗑️ 削除
-            </button>
+        {posts.map((post) => {
+          // ❤️ 自分がこの投稿にすでにいいね！しているかをチェックします
+          const isLiked = myLikedPosts.includes(post.id);
 
-            {/* 投稿の上の部分（名前や日付） */}
-            <div className="card-header">
-              <span className="author">👤 {post.author}</span>
-              <span className="date">{post.createdAt}</span>
-            </div>
-
-            {/* 投稿の中身 */}
-            <h2 className="gummy-name">🍬 {post.gummyName}</h2>
-            <p className="review-text">{post.text}</p>
-
-            {/* 投稿の下の部分（星評価やかたさ） */}
-            <div className="rating-bar">
-              <span className="stars">★ {"★".repeat(post.stars - 1)}</span>
-              <span className="hardness">食感: {post.hardness}</span>
-
-              {/* ❤️ 「いいね！」ボタンを追加しました */}
+          return (
+            <div key={post.id} className="card">
+              {/* 🗑️ 削除ボタン */}
               <button
-                onClick={() => handleLike(post.id)}
-                className="like-btn"
-                title="この投稿にいいね！をする"
+                onClick={() => handleDelete(post.id)}
+                className="delete-btn"
+                title="レビューを削除する"
               >
-                ❤️ {post.likes || 0}
+                🗑️ 削除
               </button>
+
+              {/* 投稿の上の部分（名前や日付） */}
+              <div className="card-header">
+                <span className="author">👤 {post.author}</span>
+                <span className="date">{post.createdAt}</span>
+              </div>
+
+              {/* 投稿の中身 */}
+              <h2 className="gummy-name">🍬 {post.gummyName}</h2>
+              <p className="review-text">{post.text}</p>
+
+              {/* 投稿の下の部分（星評価やかたさ） */}
+              <div className="rating-bar">
+                <span className="stars">★ {"★".repeat(post.stars - 1)}</span>
+                <span className="hardness">食感: {post.hardness}</span>
+
+                {/* ❤️ いいね！ボタン（すでにいいね済みの場合は disabled にし、マークも ❤️ に変えます） */}
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className="like-btn"
+                  disabled={isLiked}
+                  title={isLiked ? "すでにいいね！しました" : "この投稿にいいね！をする"}
+                >
+                  {isLiked ? "❤️" : "🤍"} {post.likes || 0}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* もし投稿が1件も無くなった場合の表示 */}
         {posts.length === 0 && (
