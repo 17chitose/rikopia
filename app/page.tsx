@@ -2,16 +2,16 @@
 "use client"; // localStorageやuseStateを使うため、クライアントサイド（ブラウザ）で動かします
 
 import React, { useState, useEffect } from "react";
-import { getPosts, deletePost, likePost, getMyLikedPosts, type Post } from "@/lib/storage"; // getMyLikedPosts（いいね済みリスト取得）を追加で読み込みます
+import { getPosts, deletePost, likePost, getMyLikedPosts, type Post } from "@/lib/storage";
 
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [myLikedPosts, setMyLikedPosts] = useState<string[]>([]); // ❤️ 追加：自分がすでにいいね！した投稿IDのリストを覚えるstate
+  const [myLikedPosts, setMyLikedPosts] = useState<string[]>([]);
 
   // 画面が表示された瞬間にデータを読み込みます
   useEffect(() => {
     setPosts(getPosts());
-    setMyLikedPosts(getMyLikedPosts()); // いいね済みリストも最初に読み込みます
+    setMyLikedPosts(getMyLikedPosts());
   }, []);
 
   // 「削除」ボタンが押された時の処理
@@ -22,11 +22,11 @@ export default function Home() {
     }
   };
 
-  // ❤️ 「いいね！」ボタンが押された時の処理
+  // ❤️ 「いいね！」ボタンが押された時の処理（追加と取り消しの両方に対応）
   const handleLike = (id: string) => {
     const updated = likePost(id);
     setPosts(updated);
-    setMyLikedPosts(getMyLikedPosts()); // いいね！したあと、最新のいいねリストを再取得して画面を更新します
+    setMyLikedPosts(getMyLikedPosts()); // いいねリストを再取得して画面を更新します
   };
 
   return (
@@ -40,7 +40,7 @@ export default function Home() {
       {/* タイムライン（投稿一覧） */}
       <div className="timeline">
         {posts.map((post) => {
-          // ❤️ 自分がこの投稿にすでにいいね！しているかをチェックします
+          // 自分がこの投稿にすでにいいね！しているかチェック
           const isLiked = myLikedPosts.includes(post.id);
 
           return (
@@ -54,7 +54,7 @@ export default function Home() {
                 🗑️ 削除
               </button>
 
-              {/* 投稿の上の部分（名前や日付） */}
+              {/* 投稿の上の部分 */}
               <div className="card-header">
                 <span className="author">👤 {post.author}</span>
                 <span className="date">{post.createdAt}</span>
@@ -64,17 +64,16 @@ export default function Home() {
               <h2 className="gummy-name">🍬 {post.gummyName}</h2>
               <p className="review-text">{post.text}</p>
 
-              {/* 投稿の下の部分（星評価やかたさ） */}
+              {/* 投稿の下の部分 */}
               <div className="rating-bar">
                 <span className="stars">★ {"★".repeat(post.stars - 1)}</span>
                 <span className="hardness">食感: {post.hardness}</span>
 
-                {/* ❤️ いいね！ボタン（すでにいいね済みの場合は disabled にし、マークも ❤️ に変えます） */}
+                {/* ❤️ いいね！ボタン（disabledを外し、クリックでもう一度押せるようにしました） */}
                 <button
                   onClick={() => handleLike(post.id)}
-                  className="like-btn"
-                  disabled={isLiked}
-                  title={isLiked ? "すでにいいね！しました" : "この投稿にいいね！をする"}
+                  className={`like-btn ${isLiked ? "liked" : ""}`}
+                  title={isLiked ? "いいね！を取り消す" : "この投稿にいいね！をする"}
                 >
                   {isLiked ? "❤️" : "🤍"} {post.likes || 0}
                 </button>

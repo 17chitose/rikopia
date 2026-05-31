@@ -23,7 +23,7 @@ export type Profile = {
 // メモ帳の引き出しに貼るラベルの名前です
 const STORAGE_KEY = "gummy_reviews_posts";
 const PROFILE_KEY = "gummy_profile";
-const LIKED_POSTS_KEY = "my_liked_posts"; // ❤️ 追加：自分がいいねした投稿IDを保存するキー
+const LIKED_POSTS_KEY = "my_liked_posts"; // 自分がいいねした投稿IDを保存するキー
 
 // 最初の1回目の時に表示する、サンプル用の投稿データです
 const INITIAL_POSTS: Post[] = [
@@ -101,7 +101,7 @@ export function deletePost(id: string): Post[] {
   return updatedPosts;
 }
 
-// ❤️ 【いいね済みリスト取得】自分がいいねした投稿IDのリストを取得する関数
+// 【いいね済みリスト取得】自分がいいねした投稿IDのリストを取得する関数
 export function getMyLikedPosts(): string[] {
   if (typeof window === "undefined") return [];
   const data = localStorage.getItem(LIKED_POSTS_KEY);
@@ -109,27 +109,36 @@ export function getMyLikedPosts(): string[] {
   return JSON.parse(data);
 }
 
-// ❤️ 【いいね！追加】指定された投稿のいいね！数を1つ増やす関数（1回のみのルールを追加）
+// ❤️ 【いいね！トグル】いいね！の追加と取り消しを切り替える関数にアップデートしました
 export function likePost(id: string): Post[] {
   if (typeof window === "undefined") return [];
   
   const likedIds = getMyLikedPosts();
-  
-  // 🚫 もしすでにいいね済みリストにこのIDが入っていたら、何もしないで現在のリストを返します
-  if (likedIds.includes(id)) {
-    return getPosts();
+  const isAlreadyLiked = likedIds.includes(id);
+
+  let updatedLikedIds: string[];
+  let likesDiff: number; // いいね数を増やす(+1)か、減らす(-1)かを決める変数です
+
+  if (isAlreadyLiked) {
+    // 💔 すでにいいね済みの場合：リストからIDを削除し、いいね数を -1 します
+    updatedLikedIds = likedIds.filter((likedId) => likedId !== id);
+    likesDiff = -1;
+  } else {
+    // ❤️ まだいいねしていない場合：リストにIDを追加し、いいね数を +1 します
+    updatedLikedIds = [...likedIds, id];
+    likesDiff = 1;
   }
 
-  // いいね済みリストに、新しくこの投稿のIDを追加して保存します
-  const updatedLikedIds = [...likedIds, id];
+  // 新しいいいね済みリストを保存します
   localStorage.setItem(LIKED_POSTS_KEY, JSON.stringify(updatedLikedIds));
 
-  // 投稿データのいいね数を1つ増やします
+  // 投稿データのいいね数を更新します
   const posts = getPosts();
   const updatedPosts = posts.map((post) => {
     if (post.id === id) {
       const currentLikes = post.likes || 0;
-      return { ...post, likes: currentLikes + 1 };
+      // いいね数がマイナスにならないように、Math.max(0, ...) で最低でも0個にします
+      return { ...post, likes: Math.max(0, currentLikes + likesDiff) };
     }
     return post;
   });

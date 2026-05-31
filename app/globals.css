@@ -186,11 +186,11 @@ main {
   background-color: #fee2e2;
 }
 
-/* ❤️ いいね！ボタン */
+/* ❤️ いいね！ボタン（通常時：白いハート） */
 .like-btn {
-  background-color: #fff1f2;
-  color: #f43f5e;
-  border: 1px solid #fecdd3;
+  background-color: #ffffff;
+  color: #6b7280;
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 6px 14px;
   font-size: 0.8rem;
@@ -203,19 +203,24 @@ main {
 }
 
 .like-btn:hover {
-  background-color: #f43f5e;
-  color: #ffffff;
-  border-color: #f43f5e;
-  transform: scale(1.05);
+  background-color: #fff1f2;
+  color: #f43f5e;
+  border-color: #fecdd3;
+  transform: scale(1.05); /* ぷっくり大きくします */
 }
 
-/* ❤️ いいね済み（無効化）時のスタイルを追加しました */
-.like-btn:disabled {
-  background-color: #f3f4f6;
-  color: #9ca3af;
-  border-color: #d1d5db;
-  cursor: not-allowed; /* マウスカーソルを「禁止マーク」にします */
-  transform: none; /* ホバー時の拡大を無効化 */
+/* ❤️ いいね済み状態（すでに押してあるとき）の可愛いスタイル */
+.like-btn.liked {
+  background-color: #fff1f2;
+  color: #f43f5e;
+  border-color: #fda4af;
+}
+
+.like-btn.liked:hover {
+  background-color: #ffe4e6;
+  color: #e11d48;
+  border-color: #f43f5e;
+  transform: scale(0.95); /* 取り消す合図として、少し凹むようにします！ */
 }
 
 /* ━━━━━━━ 入力フォーム ━━━━━━━ */
